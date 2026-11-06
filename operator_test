@@ -1,0 +1,24 @@
+{
+  "app_name": "JavaDemoService",
+  "version": "1.0.0",
+  "environment": "production",
+  "debug_mode": false,
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8080,
+    "timeout_seconds": 30
+  },
+  "database": {
+    "driver": "postgresql",
+    "url": "jdbc:postgresql://localhost:5432/demo_db",
+    "pool_size": 10
+  },
+  "allowed_origins": [
+    "https://example.com",
+    "https://admin.example.com"
+  ],
+  "features": {
+    "auth_enabled": true,
+    "metrics_collection": true
+  }
+}
