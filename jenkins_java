@@ -1,0 +1,49 @@
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.List;
+
+public class FileReaderUtility {
+
+    /**
+     * Reads all lines from a configuration file safely.
+     *
+     * @param filePath The path to the file.
+     * @return A list of strings containing the file lines, or an empty list if an error occurs.
+     */
+    public static List<String> readConfigFile(String filePath) {
+        Path path = Paths.get(filePath);
+        
+        // Check if the file exists before attempting to read it
+        if (!Files.exists(path) || !Files.isRegularFile(path)) {
+            System.out.println("Warning: Configuration file '" + filePath + "' not found. Using defaults.");
+            return Collections.emptyList();
+        }
+
+        try {
+            // Modern Java NIO reads all lines efficiently into memory
+            List<String> lines = Files.readAllLines(path);
+            System.out.println("Successfully read " + lines.size() + " lines from " + filePath);
+            return lines;
+            
+        } catch (IOException e) {
+            System.err.println("Error: Failed to read file " + filePath + ". Details: " + e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
+    public static void main(String[] args) {
+        String configFilePath = "settings.conf";
+        List<String> settings = readConfigFile(configFilePath);
+
+        // Process the loaded settings, skipping comments and empty lines
+        for (String line : settings) {
+            String trimmed = line.trim();
+            if (!trimmed.isEmpty() && !trimmed.startsWith("#")) {
+                System.out.println("Processing setting: " + trimmed);
+            }
+        }
+    }
+}
