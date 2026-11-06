@@ -1,0 +1,42 @@
+import json
+import os
+
+def load_user_preferences(file_path: str) -> dict:
+    """
+    Loads user preferences from a JSON configuration file.
+    
+    Args:
+        file_path (str): The path to the JSON file.
+        
+    Returns:
+        dict: A dictionary of preferences, or an empty dict if loading fails.
+    """
+    # Check if the file exists before attempting to open it
+    if not os.path.exists(file_path):
+        print(f"Warning: Configuration file '{file_path}' not found. Using defaults.")
+        return {}
+
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            preferences = json.load(file)
+            print(f"Successfully loaded preferences from {file_path}")
+            return preferences
+            
+    except json.JSONDecodeError as e:
+        print(f"Error: Failed to parse JSON in {file_path}. Details: {e}")
+        return {}
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return {}
+
+# Example usage
+if __name__ == "__main__":
+    config_file = "settings.json"
+    user_settings = load_user_preferences(config_file)
+    
+    # Accessing loaded data safely using the .get() method
+    theme = user_settings.get("theme", "dark")
+    notifications_enabled = user_settings.get("notifications", True)
+    
+    print(f"Current Theme: {theme}")
+    print(f"Notifications: {'Enabled' if notifications_enabled else 'Disabled'}")
