@@ -1,0 +1,414 @@
+pipeline {
+    agent any
+
+    tools {
+        maven 'Mymaven'
+    }
+
+    stages {
+
+        stage('CloneRepo') {
+            steps {
+                git 'https://github.com/bhasker-manikyala/DevOpsClassCodes.git'
+            }
+        }
+
+        stage('Compile') {
+            steps {
+                sh 'mvn compile'
+            }
+        }
+
+        stage('CodeReview') {
+            steps {
+                sh 'mvn pmd:pmd'
+            }
+            post {
+                success {
+                    recordIssues(
+                        tools: [pmdParser(pattern: 'target/pmd.xml')]
+                    )
+                }
+            }
+        }
+
+        stage('UnitTesting') {
+            steps {
+                sh 'mvn test'
+            }
+            post {
+                always {   // better than success
+                    junit 'target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('Package') {   // capitalize for consistency
+            steps {
+                sh 'mvn package'
+            }
+        }
+    }
+}
+
+
+pipeline {
+    agent {
+        label 'worker-1'
+    }
+
+    tools {
+        maven 'Mymaven'
+    }
+
+    stages {
+
+        stage('CloneRepo') {
+            steps {
+                git 'https://github.com/bhasker-manikyala/DevOpsClassCodes.git'
+            }
+        }
+
+        stage('Compile') {
+            steps {
+                sh 'mvn compile'
+            }
+        }
+
+        stage('CodeReview') {
+            steps {
+                sh 'mvn pmd:pmd'
+            }
+            post {
+                success {
+                    recordIssues(
+                        tools: [pmdParser(pattern: 'target/pmd.xml')]
+                    )
+                }
+            }
+        }
+
+        stage('UnitTesting') {
+            steps {
+                sh 'mvn test'
+            }
+            post {
+                always {   // better than success
+                    junit 'target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('Package') {   // capitalize for consistency
+            steps {
+                sh 'mvn package'
+            }
+        }
+    }
+}
+
+
+
+pipeline {
+    agent none
+    
+    tools {
+        maven 'Mymaven'
+    }
+
+    stages {
+
+        stage('CloneRepo') {
+            agent {label 'worker-1'}
+            steps {
+                git 'https://github.com/bhasker-manikyala/DevOpsClassCodes.git'
+            }
+        }
+
+        stage('Compile') {
+            agent {label 'worker-1'}
+            steps {
+                sh 'mvn compile'
+            }
+        }
+
+        stage('CodeReview') {
+            agent any
+            steps {
+                sh 'mvn pmd:pmd'
+            }
+            post {
+                success {
+                    recordIssues(
+                        tools: [pmdParser(pattern: 'target/pmd.xml')]
+                    )
+                }
+            }
+        }
+
+        stage('UnitTesting') {
+            agent {label 'worker-1'}
+            steps {
+                sh 'mvn test'
+            }
+            post {
+                always {   // better than success
+                    junit 'target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('Package') {   // capitalize for consistency
+            agent {label 'worker-1'}
+            steps {
+                sh 'mvn package'
+            }
+        }
+    }
+}
+
+
+pipeline {
+    agent any
+
+    tools {
+        maven 'Mymaven'
+    }
+
+    stages {
+
+        stage('CloneRepo') {
+            steps {
+                git 'https://github.com/bhasker-manikyala/DevOpsClassCodes.git'
+            }
+        }
+
+        stage('Compile') {
+            steps {
+                sh 'mvn compile'
+            }
+        }
+
+        stage('Quality Checks') {
+            parallel {
+
+                stage('CodeReview') {
+                    steps {
+                        sh 'mvn pmd:pmd'
+                    }
+                    post {
+                        success {
+                            recordIssues(
+                                tools: [pmdParser(pattern: 'target/pmd.xml')]
+                            )
+                        }
+                    }
+                }
+
+                stage('UnitTesting') {
+                    steps {
+                        sh 'mvn test'
+                    }
+                    post {
+                        always {
+                            junit 'target/surefire-reports/*.xml'
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Package') {
+            steps {
+                sh 'mvn package'
+            }
+        }
+    }
+}
+
+
+
+pipeline {
+    agent any
+
+    tools {
+        maven 'Mymaven'
+    }
+
+    stages {
+
+        stage('CloneRepo') {
+            steps {
+                git 'https://github.com/bhasker-manikyala/DevOpsClassCodes.git'
+            }
+        }
+
+        stage('Compile') {
+            steps {
+                sh 'mvn compile'
+            }
+        }
+
+        stage('Quality Checks') {
+            parallel {
+
+                stage('CodeReview') {
+                    steps {
+                        sh 'mvn pmd:pmd'
+                    }
+                    post {
+                        success {
+                            recordIssues(
+                                tools: [pmdParser(pattern: 'target/pmd.xml')]
+                            )
+                        }
+                    }
+                }
+
+                stage('UnitTesting') {
+                    steps {
+                        sh 'mvn test'
+                    }
+                    post {
+                        always {
+                            junit 'target/surefire-reports/*.xml'
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Package') {
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+    }
+
+    post {
+
+        success {
+            emailext(
+                to: 'edurekadevops@gmail.com',
+                subject: "SUCCESS: ${JOB_NAME} #${BUILD_NUMBER}",
+                body: """
+                <h2>Build Successful</h2>
+                <p><b>Job Name:</b> ${JOB_NAME}</p>
+                <p><b>Build Number:</b> ${BUILD_NUMBER}</p>
+                <p><b>Status:</b> SUCCESS</p>
+                <p><a href="${BUILD_URL}">View Build</a></p>
+                """,
+                mimeType: 'text/html'
+            )
+        }
+
+        failure {
+            emailext(
+                to: 'edurekadevops@gmail.com',
+                subject: "FAILED: ${JOB_NAME} #${BUILD_NUMBER}",
+                body: """
+                <h2>Build Failed</h2>
+                <p><b>Job Name:</b> ${JOB_NAME}</p>
+                <p><b>Build Number:</b> ${BUILD_NUMBER}</p>
+                <p><b>Status:</b> FAILED</p>
+                <p><a href="${BUILD_URL}console">View Logs</a></p>
+                """,
+                mimeType: 'text/html'
+            )
+        }
+
+        always {
+            cleanWs()
+        }
+    }
+}
+
+
+
+pipeline {
+    agent any
+
+    tools {
+        maven 'Mymaven'
+    }
+
+    stages {
+
+        stage('CloneRepo') {
+            steps {
+                git 'https://github.com/bhasker-manikyala/DevOpsClassCodes.git'
+            }
+        }
+
+        stage('Build Package') {
+            steps {
+                sh 'mvn clean install package'
+            }
+        }
+
+        stage('Deploy to Tomcat') {
+            steps {
+                sshagent(['jenkins-slave-key']) {
+                    sh '''
+                        scp -o StrictHostKeyChecking=no \
+                        target/addressbook.war \
+                        ubuntu@172.31.31.231:/opt/tomcat/webapps/
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Deployment completed successfully"
+        }
+
+        failure {
+            echo "Deployment failed"
+        }
+    }
+}
+
+
+pipeline {
+    agent any
+
+    tools {
+        maven 'Mymaven'
+    }
+
+    stages {
+
+        stage('CloneRepo') {
+            steps {
+                git 'https://github.com/bhasker-manikyala/DevOpsClassCodes.git'
+            }
+        }
+
+        stage('Package') {
+            steps {
+                sh 'mvn clean install package'
+            }
+        }
+        
+
+        stage('Deploy on Tomcat') {
+            steps {
+                deploy adapters: [
+                    tomcat9(
+                        credentialsId: 'Tomcat_user',
+                        path: '',
+                        url: 'http://3.1.194.76:8090/'
+                    )
+                ],
+                contextPath: '/addressbook',
+                war: 'target/addressbook.war'
+            }
+        }
+    }
+}
+
+
+
+
